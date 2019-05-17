@@ -1,0 +1,45 @@
+<PreferenceScreen xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="@string/general">
+        <android.support.v7.preference.EditTextPreference
+            android:defaultValue=";"
+            android:key="delimiter"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:summary="@string/preferencesDelimiterSummary"
+            android:text=";"
+            android:title="@string/delimiter" />
+
+        <android.support.v7.preference.SwitchPreferenceCompat
+            app:key="verbose"
+            app:title="@string/verbose"/>
+        <android.support.v7.preference.Preference
+            app:key="feedback"
+            app:title="Send feedback"
+            app:summary="Report technical issues or suggest new features"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/blood_pressure">
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="check_box_preference_1"
+            android:title="Check box preference" />
+        </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/weight">
+
+        <android.support.v7.preference.EditTextPreference
+            android:defaultValue="kg"
+            android:key="weightUnit"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:text="kg"
+            android:title="@string/weightUnit"/>
+    </PreferenceCategory>
+
+
+</PreferenceScreen>

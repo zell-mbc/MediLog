@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appDescription">MediLog - Gesundheitsdaten Logger</string>
+    <string name="tab_bloodpressure">Blutdruck</string>
+    <string name="tab_weight">Gewicht</string>
+    <string name="weight">Gewicht</string>
+    <string name="systolic">Sys</string>
+    <string name="settings">Einstellungen</string>
+    <string name="pulse">Puls</string>
+    <string name="diatolic">Dia</string>
+    <string name="deleteDB_title">Lösche Datenbank</string>
+    <string name="comment">Kommentar</string>
+    <string name="blood_pressure">Blutdruck</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="action_send">Senden</string>
+    <string name="action_about">Über</string>
+    <string name="action_deleteDB">Datenbank löschen</string>
+    <string name="deleteDB_message">Wollen Sie wirklich alle Daten löschen?</string>
+    <string name="title_activity_about">Über</string>
+    <string name="weightMissing">Wert für Gewicht fehlt!</string>
+    <string name="diaMissing">Wert für Diastolisch fehlt!</string>
+    <string name="pulseMissing">Wert für Puls fehlt!</string>
+    <string name="sysMissing">Wert für Systolisch fehlt!</string>
+    <string name="doYouReally1">Wollen Sie wirklich die </string>
+    <string name="doYouReally2">Datenbank löschen?</string>
+    <string name="date">Datum</string>
+    <string name="sendBPMessage">Sende Blutdruck Daten an ...</string>
+    <string name="sendWMessage">Sende Gewichtsdaten an...</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
+    <string name="recordsLoaded">Datensätze geladen!</string>
+    <string name="recordsDeleted">Datensätze gelöscht!</string>
+    <string name="weightUnit">Einheit</string>
+    <string name="delimiter">Trennzeichen</string>
+    <string name="general">Generell</string>
+    <string name="verbose">Detailierte Meldungen</string>
+    <string name="preferencesDelimiterSummary">Feldtrennzeichen bei Datenübertragung</string>
+
+</resources>
