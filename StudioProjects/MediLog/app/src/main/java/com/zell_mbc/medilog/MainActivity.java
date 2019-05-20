@@ -1,15 +1,18 @@
 package com.zell_mbc.medilog;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,7 +21,7 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-
+    Context keepContext;
 
     BloodPressureFragment bloodPressureFragment;
     WeightFragment weightFragment;
@@ -46,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         EditText dia     = findViewById(R.id.editDia);
         EditText pulse   = findViewById(R.id.editPulse);
         EditText comment = findViewById(R.id.editComment);
-        String DELIMITER = "delimiter";
+        String DELIMITER = ";";
 
         // ###########################
         // Checks
@@ -102,11 +105,56 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    void deleteDB() {
+        final int activeTab = tabLayout.getSelectedTabPosition();
+
+        String sMessage = "";
+        if (activeTab == 0) { sMessage = getString(R.string.blood_pressure); }
+        else { sMessage = getString(R.string.weight); }
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle(getString(R.string.action_deleteDB));
+        // set dialog message
+        alertDialogBuilder
+                .setMessage(getString(R.string.doYouReally1) + " " + sMessage + " " + getString(R.string.doYouReally2))
+                .setCancelable(false)
+                .setPositiveButton(getString(R.string.yes),new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,int id) {
+                        // Delete the Database
+                        if (activeTab == 0) {
+                            bloodPressureFragment.deleteDB();
+                        };
+                        if (activeTab == 1) {
+                            weightFragment.deleteDB();
+                        };
+                        dialog.cancel();
+                    }
+                })
+                .setNegativeButton(getString(R.string.no),new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog,int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Plumbing
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        /*
+        DataHandler dh  = DataHandler.of(this).get(DataHandler.class);
+        DataHandler.getData().observe(this, dbArray -> {
+            // update UI
+        });
+
+        DataHandler dh = new DataHandler(getSharedPreferences("Weight", MODE_PRIVATE));
+
+        Toast.makeText(this, "DataHandler Size: " + String.valueOf(dh.size()), Toast.LENGTH_SHORT).show();
+*/
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
@@ -114,9 +162,11 @@ public class MainActivity extends AppCompatActivity {
         TabAdapter adapter = new TabAdapter(getSupportFragmentManager());
         bloodPressureFragment = new BloodPressureFragment();
         weightFragment = new WeightFragment();
+        Log.d("Debug: weightFragment", weightFragment.toString());
 
         adapter.addFragment(bloodPressureFragment, getString(R.string.tab_bloodpressure));
         adapter.addFragment(weightFragment, getString(R.string.tab_weight));
+        Toast.makeText(this, "Main Adapter: " + adapter.getCount(), Toast.LENGTH_SHORT).show();
 
         viewPager.setAdapter(adapter);
         tabLayout.setupWithViewPager(viewPager);
@@ -125,15 +175,29 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
 
-
     }
 
-    @Override
+
+        @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+ //           Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+  //          Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     // Menue
     @Override
@@ -154,41 +218,13 @@ public class MainActivity extends AppCompatActivity {
             if (activeTab == 1) {
                 weightFragment.send(sep);
             };
- //           Toast.makeText(this, "Data sent!", Toast.LENGTH_SHORT).show();
+            deleteDB();
             return true;
         }
-        if (id == R.id.action_deleteDB) {
-            String sMessage = "";
-            if (activeTab == 0) { sMessage = getString(R.string.blood_pressure); }
-            else { sMessage = getString(R.string.weight); }
-            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-            alertDialogBuilder.setTitle(getString(R.string.action_deleteDB));
-            // set dialog message
-            alertDialogBuilder
-                    .setMessage(getString(R.string.doYouReally1) + " " + sMessage + " " + getString(R.string.doYouReally2))
-                    .setCancelable(false)
-                    .setPositiveButton(getString(R.string.yes),new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog,int id) {
-                            // Delete the Database
-                            if (activeTab == 0) {
-                                bloodPressureFragment.deleteDB();
-                            };
-                            if (activeTab == 1) {
-                                weightFragment.deleteDB();
-                            };
-                            dialog.cancel();
-                        }
-                    })
-                    .setNegativeButton(getString(R.string.no),new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog,int id) {
-                            dialog.cancel();
-                        }
-                    });
-            AlertDialog alertDialog = alertDialogBuilder.create();
-            alertDialog.show();
-
+/*        if (id == R.id.action_deleteDB) {
+            deleteDB();
             return true;
-        }
+        } */
         if (id == R.id.action_settings) {
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
@@ -200,7 +236,37 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             return true;
         }
+        if (id == R.id.action_demoData) {
+            int rec = 1000;
+
+            if (activeTab == 0) {
+                //blood_pressure
+                String DATA = "BloodPressure";
+                SharedPreferences DB = getSharedPreferences(DATA, MODE_PRIVATE);
+                SharedPreferences.Editor editor = DB.edit();
+                int i;
+                for (i=0; i< rec ; i++) {
+                    String si = String.valueOf(i);
+                    editor.putString(si, si + ";" + si + ";" + si + ";");
+                    editor.commit();
+                }
+             }
+             if (activeTab == 1) {
+                String DATA = "Weight";
+
+                SharedPreferences DB = getSharedPreferences(DATA, MODE_PRIVATE);
+                SharedPreferences.Editor editor = DB.edit();
+                int i;
+                for (i=0; i< rec ; i++) {
+                    String si = String.valueOf(i);
+                    editor.putString(si, si);
+                    editor.commit();
+                }
+            }
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
+
 }

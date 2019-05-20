@@ -15,6 +15,7 @@
     <string name="action_send">Senden</string>
     <string name="action_about">Über</string>
     <string name="action_deleteDB">Datenbank löschen</string>
+    <string name="action_demoData">Create demo data</string>
     <string name="deleteDB_message">Wollen Sie wirklich alle Daten löschen?</string>
     <string name="title_activity_about">Über</string>
     <string name="weightMissing">Wert für Gewicht fehlt!</string>

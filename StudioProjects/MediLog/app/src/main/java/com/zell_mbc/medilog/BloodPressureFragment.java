@@ -34,61 +34,40 @@ public class BloodPressureFragment extends Fragment {
     ListView pressureList = null;
     SharedPreferences DB = null;
 
-    private String formatRow(String date, String value) {
-        String result = "";
-        int i = 0;
-
-        String sys   = "";
-        String dia   = "";
-        String pulse = "";
-        String comment = "";
-        String padding = "     ";
-
-        // Sys
-        i  = value.indexOf(DELIMITER);
-        sys = value.substring(0,i);
-        sys = padding.substring(sys.length()) + sys;
-        //       Toast.makeText(this, "Value:" + value, Toast.LENGTH_SHORT).show();
-
-        // Dia
-        String sTmp =  value.substring(i+1);
-        i  = sTmp.indexOf(DELIMITER);
-        dia = sTmp.substring(0,i);
-        dia = padding.substring(dia.length()) + dia;
-
-        // Pulse
-        sTmp =  sTmp.substring(i+1);
-        i  = sTmp.indexOf(DELIMITER);
-        pulse = sTmp.substring(0,i);
-        pulse = padding.substring(pulse.length()) + pulse;
-
-        // Comment
-        i  = value.lastIndexOf(DELIMITER)+1;
-        comment = value.substring(i);
-
-        result = date + " - " + sys + dia + pulse + "  " + comment;
-        return result;
+    private String formatRow(String value) {
+        return value.replaceAll(";", " ");
     }
 
-    public void addRow(String value) {
-        Context c = getContext().getApplicationContext();
-        Log.d("--------------- Debug: ", c.toString());
 
-        String currentDateAndTime = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date());
+    public void addRow(String value) {
+        Context c = getContext();
+        if (c == null) {
+            Log.d("--------------- Debug", "Empty Context");
+            return;
+        }
+
+        Long timeStamp = (long) new Date().getTime();
+        value = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(timeStamp) + DELIMITER + value;
+
 
         // Update DB
         DB = c.getSharedPreferences(DATA, MODE_PRIVATE);
         SharedPreferences.Editor editor = DB.edit();
-        editor.putString(currentDateAndTime, value);
+        editor.putString(timeStamp.toString(), value);
         editor.commit();
 
-        bloodPressureArray.add(0, formatRow(currentDateAndTime, value)); // Add to array
+        bloodPressureArray.add(0, formatRow(value)); // Add to array
         pressureList.invalidateViews();
     }
 
 
     public void deleteDB() {
-        Context c = getContext().getApplicationContext();
+        Context c = getContext();
+        if (c == null) {
+            Log.d("--------------- Debug", "Empty Context");
+            return;
+        }
+
         int records = bloodPressureArray.size();
         bloodPressureArray.clear(); // Clear array
 
@@ -96,7 +75,6 @@ public class BloodPressureFragment extends Fragment {
         DB = c.getSharedPreferences(DATA, MODE_PRIVATE);
         DB.edit().clear().apply();
         pressureList.invalidateViews();
-//        bloodPressureArrayAdapter.notifyDataSetInvalidated();
 
         Toast.makeText(getContext(), records + " " + getString(R.string.recordsDeleted), Toast.LENGTH_SHORT).show();
     }
@@ -108,9 +86,10 @@ public class BloodPressureFragment extends Fragment {
         String data = getString(R.string.date) + sep + getString(R.string.systolic) + sep + getString(R.string.diatolic) + sep + getString(R.string.pulse) + sep + getString(R.string.comment) +  System.getProperty ("line.separator");
 
 //    SharedPreferences DB = getSharedPreferences(DATA, MODE_PRIVATE);
+        DB = c.getSharedPreferences(DATA, MODE_PRIVATE);
         Map<String, ?> allEntries = DB.getAll();
         for(Map.Entry<String, ?> entry :allEntries.entrySet()) {
-            data = data + entry.getKey().toString() + DELIMITER + entry.getValue().toString() + System.getProperty("line.separator");
+            data = data + entry.getValue().toString() + System.getProperty("line.separator");
         }
 
         Intent sendIntent = new Intent();
@@ -131,12 +110,20 @@ public class BloodPressureFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         final Context c = getContext();
+        if (c == null) {
+            Log.d("Debug onViewCreated: ", "Empty Context");
+            return;
+        }
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
+        verbose = sharedPref.getBoolean(SettingsActivity.KEY_PREF_VERBOSE,false);
 
         // Fill array
         DB = c.getSharedPreferences(DATA, MODE_PRIVATE);
+//        DB.edit().clear().apply();
         Map<String, ?> allEntries = DB.getAll();
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
-            bloodPressureArray.add(formatRow(entry.getKey().toString(),entry.getValue().toString()));
+            bloodPressureArray.add(formatRow(entry.getValue().toString()));
         }
 
         // Should not be necessary but well...
@@ -149,9 +136,6 @@ public class BloodPressureFragment extends Fragment {
 
         ArrayAdapter<String> bloodPressureArrayAdapter = new ArrayAdapter<String>(c, android.R.layout.simple_list_item_1, bloodPressureArray);
         pressureList.setAdapter(bloodPressureArrayAdapter);
-
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
-        verbose = sharedPref.getBoolean(SettingsActivity.KEY_PREF_VERBOSE,false);
 
         if (verbose) {
             int records = bloodPressureArray.size();

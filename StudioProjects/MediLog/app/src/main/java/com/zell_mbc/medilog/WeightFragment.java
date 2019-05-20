@@ -1,6 +1,8 @@
 package com.zell_mbc.medilog;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -22,45 +24,54 @@ import java.util.Date;
 import java.util.Map;
 
 import static android.content.Context.MODE_PRIVATE;
-//import static com.zell_mbc.medilog.MainActivity.DELIMITER;
+//import com.zell_mbc.medilog.MainActivity.DELIMITER;
 
 public class WeightFragment extends Fragment {
 
+    String DELIMITER = ";";
     public static final String DATA = "Weight";
     public String weightUnit;
     boolean verbose;
 
-    final public ArrayList<String> weightArray = new ArrayList<String>();
+    public ArrayList<String> weightArray = new ArrayList<String>();
     ListView weightList = null;
     SharedPreferences DB = null;
 
-    private String formatRow(String date, String value) {
-        return date + " - " + value + weightUnit;
+    private String formatRow(String value) {
+
+        return value.replace(";", " - ") + weightUnit;
     }
 
 
-    public void addRow(String value) {
-        Context c = getContext().getApplicationContext();
-        Log.d("--------------- Debug: ", c.toString());
-//        Log.i("Debug: ", getActivity().toString());
-//        Toast.makeText(c, "Debug: " + c, Toast.LENGTH_SHORT).show();
+     public void addRow(String value) {
+        Context c = getContext();
+        if (c == null) {
+            Log.d("--------------- Debug", "Empty Context");
+            return;
+        }
         // Get date
-        String currentDateAndTime = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date());
+        Long timeStamp = (long) new Date().getTime();
 
         // Update DB
-        DB = c.getSharedPreferences(DATA, MODE_PRIVATE);
-        SharedPreferences.Editor editor = DB.edit();
-        editor.putString(currentDateAndTime, value);
-        editor.commit();
+       DB = c.getSharedPreferences(DATA, MODE_PRIVATE);
+       SharedPreferences.Editor editor = DB.edit();
+       value = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(timeStamp) + "; " + value;
+
+       editor.putString(timeStamp.toString(), value);
+       editor.commit();
 
         // Add to array
-        weightArray.add(0, formatRow(currentDateAndTime, value));
+        weightArray.add(0, formatRow(value));
         weightList.invalidateViews();
     }
 
 
     public void deleteDB() {
         Context c = getContext().getApplicationContext();
+        if (c == null) {
+            Log.d("--------------- Debug", "Empty Context");
+            return;
+        }
 
         // Clear array
         int records = weightArray.size();
@@ -71,24 +82,26 @@ public class WeightFragment extends Fragment {
         DB.edit().clear().apply();
         weightList.invalidateViews();
 
-        Toast.makeText(getContext(), records + getString(R.string.recordsDeleted), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), records + " " + getString(R.string.recordsDeleted), Toast.LENGTH_SHORT).show();
     }
 
 
     public void send(String sep) {
-        Context c = getContext().getApplicationContext();
+        Context c = getContext();
+        if (c == null) {
+            Log.d("--------------- Debug", "Empty Context");
+            return;
+        }
 
 //        DecimalFormatSymbols locale = new DecimalFormatSymbols();
 //        char separator = locale.getDecimalSeparator();
         // CSV header
         String data = getString(R.string.date) + sep + getString(R.string.weight) + System.getProperty("line.separator");
 
-        Log.d("--------------- Debug: ", "" + sep);
-
         DB = c.getSharedPreferences(DATA, MODE_PRIVATE);
         Map<String, ?> allEntries = DB.getAll();
         for(Map.Entry<String, ?> entry :allEntries.entrySet()) {
-            data = data + entry.getKey().toString() + sep + entry.getValue().toString() + System.getProperty("line.separator");
+            data = data + entry.getValue().toString() + System.getProperty("line.separator");
         }
 
         Intent sendIntent = new Intent();
@@ -109,21 +122,24 @@ public class WeightFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         final Context c = getContext();
+        if (c == null) {
+            Log.d("Debug onViewCreated: ", "Empty Context");
+            return;
+        }
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
         weightUnit  = " " + sharedPref.getString(SettingsActivity.KEY_PREF_WEIGHTUNIT,"kg");
         verbose = sharedPref.getBoolean(SettingsActivity.KEY_PREF_VERBOSE,false);
 
         // Fill array
-        weightArray.clear(); // Clear array because this method gets called often
         DB = c.getSharedPreferences(DATA, MODE_PRIVATE);
-//        Toast.makeText(c.getApplicationContext(), "Debug: :" + DB, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(c.getApplicationContext(), "Debug: DB?" + DB, Toast.LENGTH_SHORT).show();
 
         //      DB.edit().clear().apply();  // Clear Database
         Map<String, ?> allEntries = DB.getAll();
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
 //            Toast.makeText(getContext(), "Debug: " + entry.getKey().toString() + " " + entry.getValue().toString(), Toast.LENGTH_SHORT).show();
-            weightArray.add(formatRow(entry.getKey().toString(), entry.getValue().toString()));
+            weightArray.add(formatRow(entry.getValue().toString()));
         }
 
         // Should not be necessary but well...
@@ -139,14 +155,43 @@ public class WeightFragment extends Fragment {
             int records = weightArray.size();
             Toast.makeText(getContext(), records + " " + getString(R.string.weight)+ " " +getString(R.string.recordsLoaded), Toast.LENGTH_SHORT).show();
         }
+//        Toast.makeText(c, "Weight: OnViewCreate" + weightArray.toString(), Toast.LENGTH_SHORT).show();
 
         // Respond to list click event
         weightList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(c.getApplicationContext(), "Clicked:" + weightArray.get(position), Toast.LENGTH_SHORT).show();
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(c);
+                alertDialogBuilder.setTitle(getString(R.string.action_deleteDB));
+                // set dialog message
+                alertDialogBuilder
+                        .setMessage("What do you want to do?")
+                        .setCancelable(false)
+                        .setPositiveButton("Delete",new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,int id) {
+                                Toast.makeText(c, "Delete", Toast.LENGTH_SHORT).show();
+                                dialog.cancel();
+                            }
+                        })
+                        .setNeutralButton("Cancel",new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog,int id) {
+                                        Toast.makeText(c, "Cancel", Toast.LENGTH_SHORT).show();
+
+                                dialog.cancel();
+                                    }
+                        })
+                        .setNegativeButton("Edit",new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,int id) {
+                                Toast.makeText(c, "Edit", Toast.LENGTH_SHORT).show();
+                                dialog.cancel();
+                            }
+                        });
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+
             }
         });
+//        Log.d("------------- Debug: weightFragment Weight", this.toString());
 
     }
 }
