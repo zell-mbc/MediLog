@@ -15,4 +15,5 @@ public class AboutActivity extends AppCompatActivity {
     }
 }
 
+//            android:configChanges="orientation|screenSize|keyboardHidden"
 

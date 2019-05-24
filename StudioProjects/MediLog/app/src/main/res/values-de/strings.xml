@@ -36,5 +36,8 @@
     <string name="general">Generell</string>
     <string name="verbose">Detailierte Meldungen</string>
     <string name="preferencesDelimiterSummary">Feldtrennzeichen bei Datenübertragung</string>
+    <string name="ItemClicked">Eintrag:</string>
+    <string name="ShowWeightTab">Gewicht Tab anzeigen</string>
+    <string name="ShowBloodPressureTab">Blutdruck Tab anzeigen</string>
 
 </resources>

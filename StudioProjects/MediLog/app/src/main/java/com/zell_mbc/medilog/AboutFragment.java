@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 public class AboutFragment extends Fragment {
 
-    public static final String VERSION = "v 0.9.0.6";
+    public static final String VERSION = "v 0.9.2.0";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

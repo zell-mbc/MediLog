@@ -15,10 +15,21 @@
         <android.support.v7.preference.SwitchPreferenceCompat
             app:key="verbose"
             app:title="@string/verbose"/>
+
         <android.support.v7.preference.Preference
             app:key="feedback"
             app:title="Send feedback"
             app:summary="Report technical issues or suggest new features"/>
+
+        <android.support.v7.preference.CheckBoxPreference
+            android:defaultValue="true"
+            android:key="showWeightTab"
+            android:title="@string/ShowWeightTab" />
+
+        <android.support.v7.preference.CheckBoxPreference
+            android:defaultValue="true"
+            android:key="showBloodPressureTab"
+            android:title="@string/ShowBloodPressureTab" />
 
     </PreferenceCategory>
 

@@ -1,115 +1,36 @@
 package com.zell_mbc.medilog;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    Context keepContext;
-
     BloodPressureFragment bloodPressureFragment;
     WeightFragment weightFragment;
-
-    private TabLayout tabLayout;
-
-
-    public void addWeight(View view) {
-        EditText weight = findViewById(R.id.editWeight);
-
-        // Check empty variables
-        String sTmp = weight.getText().toString();
-        if (sTmp.length() == 0) {
-            Toast.makeText(this, getString(R.string.weightMissing), Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        weightFragment.addRow(sTmp);
-        weight.setText("");
-    }
-
-
-    public void addPressure(View view) {
-        EditText sys     = findViewById(R.id.editSys);
-        EditText dia     = findViewById(R.id.editDia);
-        EditText pulse   = findViewById(R.id.editPulse);
-        EditText comment = findViewById(R.id.editComment);
-        String DELIMITER = ";";
-
-        // ###########################
-        // Checks
-        // ###########################
-        // Check empty variables
-        if (sys.getText().toString().length() == 0) {
-            Toast.makeText(this, getString(R.string.sysMissing), Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (dia.getText().toString().length() == 0) {
-            Toast.makeText(this, getString(R.string.diaMissing), Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (pulse.getText().toString().length() == 0) {
-            Toast.makeText(this, getString(R.string.pulseMissing), Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Check sanity
-        String sTmp = sys.getText().toString();
-        int iTmp = Integer.parseInt(sTmp);
-        if(iTmp > 200 ){
-            Toast.makeText(this, "Systolic value too high to be plausible!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        sTmp = dia.getText().toString();
-        iTmp = Integer.parseInt(sTmp);
-        if(iTmp > 200 ){
-            Toast.makeText(this, "Systolic value too high to be plausible!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        sTmp = pulse.getText().toString();
-        iTmp = Integer.parseInt(sTmp);
-        if(iTmp > 200 ){
-            Toast.makeText(this, "Pulse value too high to be plausible!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // ###########################
-        // Save values
-        // ###########################
-        String values = sys.getText().toString() + DELIMITER + dia.getText().toString() + DELIMITER + pulse.getText().toString() + DELIMITER + comment.getText().toString() ;
-        bloodPressureFragment.addRow(values);
-
-        sys.setText("");
-        dia.setText("");
-        pulse.setText("");
-        comment.setText("");
-        sys.bringToFront();
-
-    }
-
+    int bloodPressureFragment_tabID;
+    int weightFragment_tabID;
+    TabLayout tabLayout;
+    private TabAdapter adapter;
+    SQLiteDatabase healthDB;
 
     void deleteDB() {
         final int activeTab = tabLayout.getSelectedTabPosition();
 
         String sMessage = "";
-        if (activeTab == 0) { sMessage = getString(R.string.blood_pressure); }
+        if (activeTab == bloodPressureFragment_tabID) { sMessage = getString(R.string.blood_pressure); }
         else { sMessage = getString(R.string.weight); }
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setTitle(getString(R.string.action_deleteDB));
@@ -120,10 +41,10 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton(getString(R.string.yes),new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog,int id) {
                         // Delete the Database
-                        if (activeTab == 0) {
+                        if (activeTab == bloodPressureFragment_tabID) {
                             bloodPressureFragment.deleteDB();
                         };
-                        if (activeTab == 1) {
+                        if (activeTab == weightFragment_tabID) {
                             weightFragment.deleteDB();
                         };
                         dialog.cancel();
@@ -145,39 +66,56 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /*
-        DataHandler dh  = DataHandler.of(this).get(DataHandler.class);
-        DataHandler.getData().observe(this, dbArray -> {
-            // update UI
-        });
-
-        DataHandler dh = new DataHandler(getSharedPreferences("Weight", MODE_PRIVATE));
-
-        Toast.makeText(this, "DataHandler Size: " + String.valueOf(dh.size()), Toast.LENGTH_SHORT).show();
-*/
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        Boolean showBloodPressureTab = sharedPref.getBoolean(SettingsActivity.KEY_PREF_showBloodPressureTab, true);
+        Boolean showWeightTab = sharedPref.getBoolean(SettingsActivity.KEY_PREF_showWeightTab, true);
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
-        TabAdapter adapter = new TabAdapter(getSupportFragmentManager());
-        bloodPressureFragment = new BloodPressureFragment();
-        weightFragment = new WeightFragment();
-        Log.d("Debug: weightFragment", weightFragment.toString());
+        adapter = new TabAdapter(getSupportFragmentManager());
 
-        adapter.addFragment(bloodPressureFragment, getString(R.string.tab_bloodpressure));
-        adapter.addFragment(weightFragment, getString(R.string.tab_weight));
-        Toast.makeText(this, "Main Adapter: " + adapter.getCount(), Toast.LENGTH_SHORT).show();
+  /*      try {
+            SQLiteDatabase healthDB = this.openOrCreateDatabase("healthDB", MODE_PRIVATE, null);
+        }
+        catch (Exception e) { e.printStackTrace(); }
+*/
 
+
+        weightFragment = null;
+        if (showWeightTab) {
+            weightFragment = new WeightFragment();
+            adapter.addFragment(weightFragment, getString(R.string.tab_weight));
+            weightFragment_tabID = adapter.getCount() -1;
+        }
+        if (showBloodPressureTab) {
+            bloodPressureFragment = new BloodPressureFragment();
+            adapter.addFragment(bloodPressureFragment, getString(R.string.tab_bloodpressure));
+            bloodPressureFragment_tabID = adapter.getCount() -1;
+        }
+
+        if (!(showWeightTab && showBloodPressureTab)) {
+            Toast.makeText(this, "No Tab seleted?", Toast.LENGTH_SHORT).show();
+        }
         viewPager.setAdapter(adapter);
         tabLayout.setupWithViewPager(viewPager);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
     }
 
 
+    /*
+    @Override
+    protected void onDestroy () {
+
+        try { healthDB.close(); }
+        catch (Exception e) { e.printStackTrace(); }
+
+        super.onDestroy();
+    }
+*/
         @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -189,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+//        Log.d("--------------- Debug", " " + weightFragment.weightArray.size());
 
         // Checks the orientation of the screen
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -212,10 +151,10 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_send) {
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
             String sep = sharedPref.getString(SettingsActivity.KEY_PREF_DELIMITER,";");
-            if (activeTab == 0) {
+            if (activeTab == bloodPressureFragment_tabID) {
                 bloodPressureFragment.send(sep);
             };
-            if (activeTab == 1) {
+            if (activeTab == weightFragment_tabID) {
                 weightFragment.send(sep);
             };
             deleteDB();
@@ -236,10 +175,17 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             return true;
         }
+/*
+    <item
+        android:id="@+id/action_demoData"
+        android:orderInCategory="100"
+        android:title="Create Demodata"
+        app:showAsAction="never" />
+
         if (id == R.id.action_demoData) {
             int rec = 1000;
 
-            if (activeTab == 0) {
+            if (activeTab == bloodPressureFragment_tabID) {
                 //blood_pressure
                 String DATA = "BloodPressure";
                 SharedPreferences DB = getSharedPreferences(DATA, MODE_PRIVATE);
@@ -251,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
                     editor.commit();
                 }
              }
-             if (activeTab == 1) {
+             if (activeTab == weightFragment_tabID) {
                 String DATA = "Weight";
 
                 SharedPreferences DB = getSharedPreferences(DATA, MODE_PRIVATE);
@@ -263,9 +209,10 @@ public class MainActivity extends AppCompatActivity {
                     editor.commit();
                 }
             }
+
             return true;
         }
-
+*/
         return super.onOptionsItemSelected(item);
     }
 

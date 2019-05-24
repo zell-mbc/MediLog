@@ -18,10 +18,4 @@
         android:orderInCategory="100"
         android:title="@string/action_about"
         app:showAsAction="never" />
-    <item
-        android:id="@+id/action_demoData"
-        android:orderInCategory="100"
-        android:title="Create Demodata"
-        app:showAsAction="never" />
-
 </menu>
