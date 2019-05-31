@@ -39,5 +39,6 @@
     <string name="ItemClicked">Eintrag:</string>
     <string name="ShowWeightTab">Gewicht Tab anzeigen</string>
     <string name="ShowBloodPressureTab">Blutdruck Tab anzeigen</string>
-
+    <string name="Copyright1">Copyright 2019 zell-mbc.com.  Lizensiert unter MIT Lizenz</string>
+    <string name="Copyright2">Diese Anwendung nutzt androidplot, https://github.com/halfhp/androidplot/blob/master/docs/xyplot.md</string>
 </resources>

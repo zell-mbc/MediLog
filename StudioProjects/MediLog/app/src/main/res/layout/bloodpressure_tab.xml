@@ -60,13 +60,22 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
+        android:id="@+id/button_showBloodPressureChart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toStartOf="@+id/button_addBloodPressure"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_show_chart_black_24dp" />
+
+    <ImageButton
         android:id="@+id/button_addBloodPressure"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_input_add" />
+        app:srcCompat="@drawable/ic_add_circle_outline_black_24dp" />
 
     <ListView
         android:id="@+id/pressureList"

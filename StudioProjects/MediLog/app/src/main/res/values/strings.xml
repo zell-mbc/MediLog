@@ -39,4 +39,8 @@
     <string name="ItemClicked">Item:</string>
     <string name="ShowWeightTab">Show Weight Tab</string>
     <string name="ShowBloodPressureTab">Show Blood Pressure Tab </string>
+    <string name="Copyright1">Copyright 2019 zell-mbc.com.  Licensed under MIT License</string>
+    <string name="Copyright2">This application includes androidplot, https://github.com/halfhp/androidplot/blob/master/docs/xyplot.md</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
