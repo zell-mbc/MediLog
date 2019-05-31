@@ -5,8 +5,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+
 public class MainActivity extends AppCompatActivity {
 
     BloodPressureFragment bloodPressureFragment;
@@ -24,7 +25,6 @@ public class MainActivity extends AppCompatActivity {
     int weightFragment_tabID;
     TabLayout tabLayout;
     private TabAdapter adapter;
-    SQLiteDatabase healthDB;
 
     void deleteDB() {
         final int activeTab = tabLayout.getSelectedTabPosition();
@@ -157,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
             if (activeTab == weightFragment_tabID) {
                 weightFragment.send(sep);
             };
+            SystemClock.sleep(1000);
             deleteDB();
             return true;
         }
@@ -173,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_about) {
             Intent intent = new Intent(this, AboutActivity.class);
             startActivity(intent);
+
             return true;
         }
 /*

@@ -38,9 +38,12 @@ public class BloodPressureFragment extends Fragment {
     String tableName = "bloodPressureTB";
 
     ImageButton button_addBloodPressure = null;
+    ImageButton button_showBloodPressureChart = null;
     boolean verbose;
 
     final public ArrayList<String>bloodPressureArray = new ArrayList<>();
+    final public ArrayList<Long>bloodPressureArrayHelper = new ArrayList<>(); // Shadow Array which holds the full timestamp
+
     ListView pressureList = null;
     EditText sys;
     EditText dia;
@@ -48,8 +51,9 @@ public class BloodPressureFragment extends Fragment {
     EditText comment;
 
     // Classes
-    private String formatRow(String key, String value) {
-        return key + SEPARATOR + value.replaceAll(";", " ");
+    private String formatRow(Long timeStamp, String value) {
+        String ts = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(timeStamp);
+        return ts.substring(0, 16) + SEPARATOR + value.replaceAll(";", " ");
     }
 
 
@@ -106,8 +110,7 @@ public class BloodPressureFragment extends Fragment {
 
 
         // Get date
-        Long lTmp = new Date().getTime();
-        String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lTmp);
+        Long timeStamp = new Date().getTime();
 
         // Update DB
         try {
@@ -129,6 +132,7 @@ public class BloodPressureFragment extends Fragment {
 
 
         bloodPressureArray.add(0, formatRow(timeStamp, value)); // Add to array
+        bloodPressureArrayHelper.add(0, timeStamp); // Add to array
         Log.d("--------------- Debug", bloodPressureArray.get(0));
         pressureList.invalidateViews();
 
@@ -148,20 +152,21 @@ public class BloodPressureFragment extends Fragment {
             return;
         }
 
-        String key = bloodPressureArray.get(index);
-        String timeStamp = key.substring(0, 16);
-        Log.d("--------------- Debug", key);
+        Long timeStamp = bloodPressureArrayHelper.get(index);
+        // String timeStamp = key.substring(0, 16);
+     //   Log.d("--------------- Debug", key);
 
         // Update DB
         try {
             healthDB = c.openOrCreateDatabase(dbName, MODE_PRIVATE, null);
-            int result = healthDB.delete(tableName, "timestamp='" + timeStamp + "'", null);
+            int result = healthDB.delete(tableName, "timestamp='" + timeStamp, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         // Remove from array
         bloodPressureArray.remove(index);
+        bloodPressureArrayHelper.remove(index);
         pressureList.invalidateViews();
     }
 
@@ -207,6 +212,7 @@ public class BloodPressureFragment extends Fragment {
 
         int records = bloodPressureArray.size();
         bloodPressureArray.clear(); // Clear array
+        bloodPressureArrayHelper.clear(); // Clear array
 
          // Clear Database
          try {
@@ -234,6 +240,10 @@ public class BloodPressureFragment extends Fragment {
         String data = getString(R.string.date) + DELIMITER + getString(R.string.systolic) + DELIMITER + getString(R.string.diatolic) + DELIMITER + getString(R.string.pulse) + DELIMITER + getString(R.string.comment) +  System.getProperty ("line.separator");
         for (String row : bloodPressureArray) {
             sTmp = row.replace(SEPARATOR,DELIMITER);
+            sTmp = sTmp.replace(" ",DELIMITER);
+
+            sTmp = sTmp.substring(0, 10) + " " + sTmp.substring(11);
+
             data = data + sTmp + System.getProperty("line.separator");
         }
             Log.d("--------------- Debug", data);
@@ -261,7 +271,7 @@ public class BloodPressureFragment extends Fragment {
 
         try {
             healthDB = c.openOrCreateDatabase(dbName, MODE_PRIVATE, null);
-            String command = "CREATE TABLE IF NOT EXISTS " + tableName + " (timestamp VARCHAR, sys INT(3), dia INT(3), pulse INT(3), comment VARCHAR)";
+            String command = "CREATE TABLE IF NOT EXISTS " + tableName + " (timestamp DATE, sys INT(3), dia INT(3), pulse INT(3), comment VARCHAR)";
             healthDB.execSQL(command);
             Cursor bloodPressureCursor = healthDB.query(tableName, null,null, null,null,null, "timestamp DESC",null);
 
@@ -273,9 +283,10 @@ public class BloodPressureFragment extends Fragment {
 
             String sTmp;
             while (bloodPressureCursor.moveToNext()) {
-                Log.d("Debug Cursor: ", bloodPressureCursor.getString(dateIndex) + " " + bloodPressureCursor.getString(sysIndex));
-                sTmp = bloodPressureCursor.getString(dateIndex) + SEPARATOR + bloodPressureCursor.getString(sysIndex) + " " + bloodPressureCursor.getString(diaIndex) + " " + bloodPressureCursor.getString(pulseIndex) + " " + bloodPressureCursor.getString(commentIndex);
-                bloodPressureArray.add(sTmp);
+//                Log.d("Debug Cursor: ", bloodPressureCursor.getString(dateIndex) + " " + bloodPressureCursor.getString(sysIndex));
+                sTmp = bloodPressureCursor.getString(sysIndex) + " " + bloodPressureCursor.getString(diaIndex) + " " + bloodPressureCursor.getString(pulseIndex) + " " + bloodPressureCursor.getString(commentIndex);
+                bloodPressureArray.add(formatRow(bloodPressureCursor.getLong(dateIndex), sTmp));
+                bloodPressureArrayHelper.add(bloodPressureCursor.getLong(dateIndex));
             }
             bloodPressureCursor.close();
 
@@ -317,6 +328,19 @@ public class BloodPressureFragment extends Fragment {
         button_addBloodPressure.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) { addRow(); };
         });
+
+
+        button_showBloodPressureChart = view.findViewById(R.id.button_showBloodPressureChart);
+        button_showBloodPressureChart.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(c, BloodPressureChartActivity.class);
+                startActivity(intent);
+            }
+
+            ;
+        });
+
+
 
         pressureList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
