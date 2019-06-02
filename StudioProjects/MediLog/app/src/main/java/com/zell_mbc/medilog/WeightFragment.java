@@ -42,8 +42,8 @@ public class WeightFragment extends Fragment {
     boolean verbose;
     String editField = "";
 
-    public ArrayList<String> weightArray = new ArrayList<String>();
-    public ArrayList<Long> weightArrayHelper = new ArrayList<Long>();
+    public ArrayList<String> weightArray = new ArrayList<>();
+    public ArrayList<Long> weightArrayHelper = new ArrayList<>();
     ListView weightList = null;
     ImageButton button_addWeight = null;
     ImageButton button_showWeightChart = null;
@@ -84,7 +84,7 @@ public class WeightFragment extends Fragment {
             values.put("weight", Double.parseDouble(value));
 
             Long result = healthDB.insert(tableName, null, values);
-            Log.d("--------------- Debug", " " + result);
+//            Log.d("--------------- Debug", " " + result);
 
 
 /*
@@ -204,7 +204,6 @@ public class WeightFragment extends Fragment {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
-                return;
             }
         });
 
@@ -309,7 +308,7 @@ public class WeightFragment extends Fragment {
             int weightIndex = weightCursor.getColumnIndex("weight");
 
             while (weightCursor.moveToNext()) {
-                Log.d("Debug Cursor: ", weightCursor.getString(dateIndex) + " " + weightCursor.getString(weightIndex));
+  //              Log.d("Debug Cursor: ", weightCursor.getString(dateIndex) + " " + weightCursor.getString(weightIndex));
                 weightArray.add(formatRow(weightCursor.getLong(dateIndex), weightCursor.getString(weightIndex)));
                 weightArrayHelper.add(weightCursor.getLong(dateIndex));
             }
@@ -339,7 +338,7 @@ public class WeightFragment extends Fragment {
         weightList = view.findViewById(R.id.weightList);
         weight = view.findViewById(R.id.editWeight);
 
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(c, android.R.layout.simple_list_item_1, weightArray);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(c, android.R.layout.simple_list_item_1, weightArray);
         weightList.setAdapter(arrayAdapter);
 
         if (verbose) {
@@ -354,7 +353,6 @@ public class WeightFragment extends Fragment {
                 addRow();
             }
 
-            ;
         });
 
         button_showWeightChart = view.findViewById(R.id.button_showWeightChart);
@@ -364,13 +362,11 @@ public class WeightFragment extends Fragment {
                     startActivity(intent);
                     // return true;
             }
-            ;
         });
 
         weightList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
-                final int pos = position;
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(c);
                 alertDialogBuilder.setTitle(getString(R.string.ItemClicked) + " " + weightArray.get(position));
                 // set dialog message
